@@ -315,3 +315,66 @@ Royal Challengers Bangalore 3729
 Kings XI Punjab 3698   */ 
 
 -----------------------------------------------------------------------------------------------------------------------
+Q ) CHENNAI AND MUMBAI HAS RIVALRY , MAKE CHART DETAILING THEIR ENCOUNTERS 
+
+/* SINCE WE ARE USING BALL BY BALL DATASET WHICH DO NOT HAVE SEPEARTE COLUMN OF WIN BY WICKETS OR RUNS OR TOSS INFO 
+WE WILL HAVE TO TAKE THIS APPROACH */
+
+WITH CTE AS 
+(SELECT *                                                   /* filtering the data for 2 teams only */
+FROM IPLXX 
+WHERE (batting_team = 'Mumbai Indians' or batting_team = 'Chennai Super Kings') 
+and  (bowling_team = 'Mumbai Indians' or bowling_team = 'Chennai Super Kings')),
+
+CTEE AS
+(SELECT                                                  /* per inning total score by both teams */
+ID ,BATTING_TEAM ,SUM(TOTAL_RUNS) AS TOTAL_SUM 
+FROM CTE GROUP BY 1,2 ORDER BY 1 ASC),
+
+CTE_CSK AS 
+(SELECT                                                  /* taking per inning total score by CSK */
+ID , BATTING_TEAM , TOTAL_SUM AS CSK_SCORE 
+FROM CTEE 
+WHERE BATTING_TEAM = 'Chennai Super Kings') ,
+
+CTE_MI AS 
+(SELECT                                                  /* taking per inning total score by MI */
+ID , BATTING_TEAM, TOTAL_SUM AS MI_SCORE FROM CTEE WHERE 
+BATTING_TEAM = 'Mumbai Indians'),
+
+
+CTE_FINAL AS 
+(SELECT *                                                /* INNER JOIN OF ABOVE 2 CTEs */
+FROM CTE_MI INNER JOIN CTE_CSK 
+ON CTE_MI.ID = CTE_CSK.ID)
+
+SELECT *
+FROM CTE_FINAL                                          /* FINAL TOTAL SCORE COMPARISON QUERY */ 
+WHERE CSK_SCORE < MI_SCORE ;
+
+/* MI WON 18 MATCHES WHILE CSK WON 12 MATCHES */ 
+-----------------------------------------------------------------------------------------------------------------------
+
+Q) CREATE A CHART FOR TOTAL BOUNDRIES SCORED BY CSK AND MI WHEN PLAYING AGAINS EACH OTHER 
+
+WITH CTE AS 
+(SELECT * 
+FROM IPLXX 
+WHERE (batting_team = 'Mumbai Indians' or batting_team = 'Chennai Super Kings') 
+and  (bowling_team = 'Mumbai Indians' or bowling_team = 'Chennai Super Kings')),
+
+CTE_MI AS 
+(SELECT 
+ID , COUNT(*) AS TOTAL_COUNT_MI 
+FROM CTE 
+WHERE batting_team = 'Mumbai Indians' AND BATSMAN_RUNS IN (6,4) GROUP BY ID),
+
+CTE_CSK AS 
+(SELECT 
+ID , COUNT(*) AS TOTAL_COUNT_CSK 
+FROM CTE WHERE BATTING_TEAM = 'Chennai Super Kings' AND BATSMAN_RUNS IN(6,4) GROUP BY ID ),
+
+CTE_FINAL AS 
+(SELECT * FROM CTE_MI INNER JOIN CTE_CSK ON CTE_MI.ID = CTE_CSK.ID)
+
+SELECT * FROM CTE_FINAL ;
