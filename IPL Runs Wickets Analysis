@@ -212,16 +212,68 @@ OTRDER BY STRK_RATE DESC ;
 
 Q) FIND OUT THE BOWLERS AND THEIR ECONOMY RATE
 
-WITH CTE_BALLS AS (SELECT bowler , COUNT(*) / 6 AS TOTAL_OVERS FROM IPLC GROUP BY 1),
+WITH CTE_BALLS AS             /* HERE WE ARE FINDING NUMBER OF OVERS BY EACH BOWLER */ 
+(SELECT 
+bowler , (COUNT(*) / 6) AS TOTAL_OVERS 
+FROM IPLC GROUP BY 1),
 
-CTE_RUNS_GIVEN AS (SELECT BOWLER , SUM(TOTAL_RUNS) AS TOTAL_RUNS FROM IPLC GROUP BY 1),
+CTE_RUNS_GIVEN AS            /* HERE WE ARE FINDING TOTAL RUNS GIVEN BY EACH BOWLER */ 
+(SELECT
+BOWLER , SUM(TOTAL_RUNS) AS TOTAL_RUNS 
+FROM IPLC GROUP BY 1),
 
-CTE_FINAL AS (SELECT * FROM CTE_BALLS INNER JOIN CTE_RUNS_GIVEN ON CTE_BALLS.BOWLER = CTE_RUNS_GIVEN.BOWLER)
+CTE_FINAL AS              /* JOINING THE 2 CTEs */
+(SELECT * 
+FROM CTE_BALLS INNER JOIN CTE_RUNS_GIVEN ON CTE_BALLS.BOWLER = CTE_RUNS_GIVEN.BOWLER) ,
 
-, CTE_STRK AS (SELECT *, (TOTAL_RUNS / TOTAL_OVERS)*100 AS STRK FROM CTE_FINAL ORDER BY STRK
+CTE_STRK AS             /*  finding the ECONOMY RATE OF EACH BOWLER */ 
+(SELECT *, 
+(TOTAL_RUNS / TOTAL_OVERS)*100 AS ECO_RATE 
+FROM CTE_FINAL ORDER BY ECO_RATE
 
 SELECT * FROM CTE_STRK LIMIT 10;     
+---------------------------------------------------------------------------------------------------------------------
 
+Q) FIND THE TOTAL RUNS SCORED BY TEAM 'MUMBAI INDIANS'
 
+SELECT SUM(TOTAL_RUNS) 
+FROM IPLX 
+WHERE BATTING_TEAM = 'MUMBAI INDIANS' ;
+
+---------------------------------------------------------------------------------------------------------------------
+
+Q) FIND THE TOP 5 BATSMAN WHO HAD MAXIMUM DOT BALLS FACED
+
+WITH CTE AS (SELECT * FROM IPLX WHERE TOTAL_RUNS = 0 )   /* CTE WITH ONLY ROWS WITH DOT BALLS */ 
+
+SELECT BATSMAN , COUNT(*) AS TOTAL_DOT_BALLS FROM CTE    /* GROUPING DATA BY BATSMAN */ 
+GROUP BY 1 ORDER BY 2 DESC
+LIMIT 5 ;                      /* FETCHING TOP 5 RECORDS */ 
+
+-----------------------------------------------------------------------------------------------------------------------
+
+Q) BOWLERS WHO GAVE MAXIMUM SIXES
+
+WITH CTE AS (SELECT * FROM IPLX WHERE BATSMAN_RUNS = 6)
+
+SELECT BOWLER , COUNT(*) 
+FROM CTE GROUP BY 1 ORDER BY 2 DESC 
+LIMIT 5; 
+
+-----------------------------------------------------------------------------------------------------------------------
+
+Q) WHICH TEAM HAS HIT MAXIMUM NUMBER OF SIXES
+
+WITH CTE AS (SELECT * FROM IPLX WHERE BATSMAN_RUNS = 6)
+
+SELECT 
+BATTTING_TEAM , COUNT(*) 
+FROM CTE 
+GROUP BY 1 ORDER BY 2 DESC 
+LIMIT 1 ;
+
+-----------------------------------------------------------------------------------------------------------------------
+
+Q) 
 
 
