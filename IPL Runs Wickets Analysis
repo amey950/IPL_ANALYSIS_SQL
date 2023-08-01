@@ -1,0 +1,227 @@
+Q) find the total matches conducted in IPL
+
+SELECT COUNT(DISTINCT(ID)) FROM IPL_DATA ;    /* 816 MATCHES FOR WHICH DATA IS PRESENT IN DATBASE */ 
+---------------------------------------------------------------------------------------------------------------------
+Q) FIND THE TOTAL NUMBER OF 6s (BOUNDRY SIXER) IN ENTIRE IPL TIMESPAN
+
+SELECT COUNT(*) FROM IPL_DATA WHERE BATSMAN_RUN = 6 ;
+---------------------------------------------------------------------------------------------------------------------
+Q) FIND THE TOTAL NUMBER OF 4s (BOUNDRY FOUR) IN ENTIRE IPL TIMESPAN
+
+SELECT COUNT(*) FROM IPL_DATA WHERE BATSMAN_RUN = 4 ;
+---------------------------------------------------------------------------------------------------------------------
+Q) FIND THE TOP 5 BATSMAN WHO HAVE SCORED HIGHEST NUMBER OF 6s
+
+WITH CTE AS (SELECT * FROM IPL_DATA WHERE BATSMAN_RUN = 6)
+SELECT BATSMAN , COUNT(*) FROM CTE GROUP BY 1 ORDER BY 2 DESC LIMIT 5 ;
+
+/* CH Gayle 344
+AB de Villiers 232
+MS Dhoni 214
+RG Sharma 212
+V Kohli 201  */ 
+---------------------------------------------------------------------------------------------------------------------
+Q) FIND THE TOP 5 BATSMAN WHO HAVE SCORED HIGHEST NUMBER OF 4s
+
+WITH CTE AS (SELECT * FROM IPL_DATA WHERE BATSMAN_RUN = 4)
+SELECT BATSMAN , COUNT(*) FROM CTE GROUP BY 1 ORDER BY 2 DESC LIMIT 5 ;
+
+/*
+S Dhawan 595
+DA Warner 515
+V Kohli 508
+G Gambhir 499
+SK Raina 494
+*/
+---------------------------------------------------------------------------------------------------------------------
+
+Q) FIND THE TOP 5 BATSMAN WITH HIGHEST RUNS
+
+SELECT 
+BATSMAN , SUM(BATSMAN_RUNS) 
+FROM IPL_DATA 
+GROUP BY 1 ORDER BY 2 DESC LIMIT 5 ;
+
+/*
+V Kohli 5878
+SK Raina 5368
+DA Warner 5254
+RG Sharma 5230
+S Dhawan  5197 */
+
+---------------------------------------------------------------------------------------------------------------------
+
+Q) FIND THE WIN PERCENTAGE OF TEAM 'MUMBAI INDIANS
+
+WITH TEAM_PLAYED AS 
+(SELECT 
+COUNT(*)                    /*  HERE WE ARE FINDING TOTAL MATCHES PLAYED BY MUMBAI INDIANS */ 
+FROM 
+IPL_MATCHES 
+WHERE TEAM1 = 'Mumbai Indians' OR TEAM2 = 'Mumbai Indians'),
+
+TEAM_WON AS 
+(SELECT                   /* HERE WE ARE FINDING TOTAL MATCHES WON BY THE MUMBAI INDIANS */ 
+COUNT(*) 
+FROM IPL_MATCHES WHERE WINNER = 'Mumbai Indians' )
+
+SELECT 
+((SELECT * FROM TEAM_WON)*100 / (SELECT * FROM TEAM_PLAYED));   /* WINNING PERCENTAGE OF TEAM */ 
+
+---------------------------------------------------------------------------------------------------------------------
+
+Q) CREATE CHART / TABLE TELLING TOTAL MATCHES PLAYED , TOTAL MATCHES WON AND WIN PERCENTAGE
+
+WITH TEAM_PLAYED (TEAM_NAME , PLAY_NUMBERS) AS       /* THIS CTE IS FOR TOTAL MATCHES PLAYED BY EACH TEAM */ 
+(
+(SELECT 'Chennai Super Kings',COUNT(*) FROM IPL_MATCHES WHERE TEAM1 = 'Chennai Super Kings' OR TEAM2 = 'Chennai Super Kings')
+UNION
+(SELECT 'Royal Challengers Bangalore',COUNT(*) FROM IPL_MATCHES WHERE TEAM1 = 'Royal Challengers Bangalore' OR TEAM2 = 'Royal Challengers Bangalore')
+UNION
+(SELECT 'Kings XI Punjab',COUNT(*) FROM IPL_MATCHES WHERE TEAM1 = 'Kings XI Punjab' OR TEAM2 = 'Kings XI Punjab')
+)
+
+, TEAM_WON (TEAM_NAME , WIN_NUMBERS) AS      /* THIS CTE IS FOR TOTAL WINS BY EACH TEAM */
+(
+(SELECT 'Chennai Super Kings', COUNT(*) FROM IPL_MATCHES WHERE WINNER = 'Chennai Super Kings')
+UNION
+(SELECT 'Royal Challengers Bangalore', COUNT(*) FROM IPL_MATCHES WHERE WINNER = 'Royal Challengers Bangalore')
+UNION
+(SELECT 'Kings XI Punjab', COUNT(*) FROM IPL_MATCHES WHERE WINNER = 'Kings XI Punjab')
+),
+
+CTE_3 AS         /* THIS FINAL CTE IS FOR JOINING ABOVE 2 CTEs */ 
+(SELECT * 
+FROM 
+TEAM_PLAYED INNER JOIN TEAM_WON ON TEAM_PLAYED.TEAM_NAME = TEAM_WON.TEAM_NAME)
+
+SELECT *, 
+(WIN_NUMBERS /PLAY_NUMBERS ) *100 AS WIN_PRCNT       /* FINAL QUERY TO FIND WIN PERCENTAGE */ 
+FROM CTE_3 ;
+
+/* USER OF THIS QUERY CAN ADD OTHER TEAM IN ABOVE CTEs */
+
+---------------------------------------------------------------------------------------------------------------------
+
+Q) FIND COLLECTIVE STRIKE RATE BY SPLITTING 20 OVERS IN 4 BUCKETS
+
+WITH CTE_RUNS (OVERS , RUNS) AS (                                  /* THIS CTE IS FOR TOTAL RUNS SCORE IN DIFFERENT OVER SLABS */
+SELECT '0-4' , SUM(TOTAL_RUNS) FROM IPLX WHERE OVER BETWEEN 0 AND 4
+UNION
+SELECT '5-9' , SUM(TOTAL_RUNS) FROM IPLX WHERE OVER BETWEEN 5 AND 9
+UNION
+SELECT '10-14' , SUM(TOTAL_RUNS) FROM IPLX WHERE OVER BETWEEN 10 AND 14
+UNION
+SELECT '15-20' , SUM(TOTAL_RUNS) FROM IPLX WHERE OVER BETWEEN 15 AND 20
+)
+
+, CTE_BALLS (OVERS , BALLS) AS (                              /* THIS CTE IS FOR TOTAL BALLS BOLWED IN DIFFERENT OVER SLABS */
+SELECT '0-4' , COUNT(*) FROM IPLX WHERE OVER BETWEEN 0 AND 4
+UNION
+SELECT '5-9' , COUNT(*) FROM IPLX WHERE OVER BETWEEN 5 AND 9
+UNION
+SELECT '10-14' , COUNT(*) FROM IPLX WHERE OVER BETWEEN 10 AND 14
+UNION
+SELECT '15-20' , COUNT(*) FROM IPLX WHERE OVER BETWEEN 15 AND 20
+)
+
+, CTE_FINAL AS (SELECT * FROM CTE_RUNS INNER JOIN CTE_BALLS ON CTE_RUNS.OVERS = CTE_BALLS.OVERS)   /* JOINING ABOVE 2 CTE */
+
+SELECT *, (100* RUNS/BALLS) AS STRK_RATE FROM CTE_FINAL ORDER BY STRK_RATE DESC;   /* FINAL QUERY */
+
+---------------------------------------------------------------------------------------------------------------------
+
+Q) TOP 5 BIGGEST RUNS SCORED    ( DOES NOT MATTER ID FIRST OR SECOND INNINGS ) 
+
+SELECT ID ,INNING, SUM(TOTAL_RUNS) 
+FROM IPLX 
+GROUP BY 1,2 
+ORDER BY 3 DESC 
+LIMIT 5;
+
+---------------------------------------------------------------------------------------------------------------------
+
+Q) TOP 5 BIGGETS CHASE / 2ND INNINGS SCORE
+
+WITH CTE AS 
+( SELECT * 
+FROM IPLX
+WHERE INNING = 2)
+
+SELECT 
+ID ,batting_team ,SUM(TOTAL_RUNS) 
+FROM CTE 
+GROUP BY 1 ,2 ORDER BY 3 DESC LIMIT 5 ;
+
+---------------------------------------------------------------------------------------------------------------------
+
+Q) FIND THE PLAYERS WHO HAVE SCORED CENTURY
+
+WITH CTE AS 
+(SELECT 
+ID , BATSMAN ,SUM(BATSMAN_RUNS) AS TOTAL_RUNS 
+FROM IPLX 
+GROUP BY 1,2 ORDER BY 3 DESC)
+
+SELECT * FROM CTE WHERE TOTAL_RUNS => 100 ;
+
+---------------------------------------------------------------------------------------------------------------------
+
+Q) FIND THE TOP 5 PLAYERS WITH MAXIMUM NUMBER OF CENTURIES , ALSO MENTION RESPECTIVE PLAYER'S NUMBER OF CENTURIES
+
+WITH CTE AS 
+(SELECT 
+ID , BATSMAN ,SUM(BATSMAN_RUNS) AS TOTAL_RUNS 
+FROM IPLX 
+GROUP BY 1,2 ORDER BY 3 DESC)
+
+, CTE_2 AS (SELECT * FROM CTE WHERE TOTAL_RUNS => 100)
+
+SELECT 
+BATSMAN , COUNT(*) AS TOTAL_COUNT 
+FROM CTE_2 
+GROUP BY 1 ORDER BY 2 DESC LIMIT 5 ;
+
+/*
+CH Gayle 6
+SR Watson 4
+AB de Villiers 3
+DA Warner 3
+V Kohli 3
+*/
+
+---------------------------------------------------------------------------------------------------------------------
+
+Q) FIND THE STRIKE RATE OF PLAYERS WHO HAVE SCORED MORE THAN 1000 TOTAL RUNS IN ENTIRE IPL CARRER
+
+WITH CTE_RUNS AS 
+(SELECT BATSMAN , SUM(BATSMAN_RUNS) AS TOTAL_RUNS FROM IPLC GROUP BY 1 ),
+
+CTE_BALLS AS 
+(SELECT BATSMAN , COUNT(*) AS TOTAL_BALLS FROM IPLC GROUP BY 1),
+
+CTE_FINAL AS (SELECT * FROM CTE_RUNS INNER JOIN CTE_BALLS ON CTE_RUNS.BATSMAN = CTE_BALLS.BATSMAN),
+
+CTE_STRK AS (SELECT *, ((TOTAL_RUNS / TOTAL_BALLS )* 100 ) AS STRK_RATE FROM CTE_FINAL ORDER BY STRK_RATE DESC)
+
+SELECT *
+FROM CTE_STRK 
+WHERE TOTAL_RUNS > 1000
+OTRDER BY STRK_RATE DESC ;
+---------------------------------------------------------------------------------------------------------------------
+
+Q) FIND OUT THE BOWLERS AND THEIR ECONOMY RATE
+
+WITH CTE_BALLS AS (SELECT bowler , COUNT(*) / 6 AS TOTAL_OVERS FROM IPLC GROUP BY 1),
+
+CTE_RUNS_GIVEN AS (SELECT BOWLER , SUM(TOTAL_RUNS) AS TOTAL_RUNS FROM IPLC GROUP BY 1),
+
+CTE_FINAL AS (SELECT * FROM CTE_BALLS INNER JOIN CTE_RUNS_GIVEN ON CTE_BALLS.BOWLER = CTE_RUNS_GIVEN.BOWLER)
+
+, CTE_STRK AS (SELECT *, (TOTAL_RUNS / TOTAL_OVERS)*100 AS STRK FROM CTE_FINAL ORDER BY STRK
+
+SELECT * FROM CTE_STRK LIMIT 10;     
+
+
+
+
