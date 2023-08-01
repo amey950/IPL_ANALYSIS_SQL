@@ -1,0 +1,84 @@
+Here we are using IPL data names IPL Matches 2008-2020 (It is different than IPL Ball by Ball data).
+This data set focuses on toss winner , toss decision , winner of match , venue , stadium name and Umpires etc.
+
+Q) Find the top 5 venues / city where maximum number of IPL matches were held.
+
+SELECT 
+CITY , COUNT(*) 
+FROM IPL_DATA 
+GROUP BY 1 ORDER BY 2 DESC 
+LIMIT 5 ; 
+
+-----------------------------------------------------------------------------------------------
+
+Q) FIND THE TOP 5 MOSTLY USED STADIUMS
+
+SELECT 
+STADIUM , COUNT(*) 
+FROM IPL_DATA
+GROUP BY 1 ORDER BY 2 DESC
+LIMIT 5;
+
+-----------------------------------------------------------------------------------------------
+
+Q) FIND THE TOP 5 PLAYERS WHO HAVE HIGHEST NUMBER OF PLAYER OF THE MATCH AWARD
+
+ SELECT 
+player_of_match , COUNT(*) 
+FROM IPL_DATA 
+GROUP BY 1 ORDER BY 2 DESC 
+LIMIT 5 ;
+
+/*
+AB de Villiers 23
+CH Gayle 22
+RG Sharma 18
+DA Warner 17
+MS Dhoni 17 */
+-----------------------------------------------------------------------------------------------
+Q) FIND THE PERCENTAGE WHEH THE TEAM HAS WON THE TOSS AND WON THE MATCH
+
+WITH CTE AS 
+(SELECT 
+COUNT(ID)                /* FINDING THE TOTAL MATCHES PLAYED */
+FROM 
+IPL_DATA ),    
+
+CTE_2 AS 
+(SELECT             /* ROW COUNT WHERE TOSS WINNER WAS ALSO A MATCH WINNER */
+COUNT(ID) 
+FROM IPL_DATA 
+WHERE TOSS_WINNER = WINNER )
+
+SELECT 
+((SELECT * FROM CTE_2)*100 / (SELECT * FROM CTE))  ; /* FINDING PERCENTAGE */
+
+-----------------------------------------------------------------------------------------------
+
+Q) FIND THE TEAM WHICH HAS WON MAXIMUM NUMBER OF TOSS
+
+SELECT 
+TOSS_WINNER , COUNT(*) 
+FROM IPL_DATA 
+GROUP BY 1 ORDER BY 2 DESC ;
+
+-----------------------------------------------------------------------------------------------
+Q) FIND THE PERCENTAGE OF INSTANCES WHEN TEAM CHOSE BAT AFTER WINNING TOSS AND MATCH ALSO WON
+
+WITH CTE AS 
+(SELECT * 
+FROM 
+IPL_DATA 
+WHERE TOSS_WINNER = WINNER),
+
+CTEE AS 
+(SELECT * 
+FROM CTE 
+WHERE toss_decision = 'BAT' FROM CTE)
+
+SELECT 
+((SELECT COUNT(*) FROM CTEE)*100 / (SELECT COUNT(*) FROM CTE)) ;
+-----------------------------------------------------------------------------------------------
+
+
+
