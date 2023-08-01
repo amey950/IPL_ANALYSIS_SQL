@@ -274,6 +274,44 @@ LIMIT 1 ;
 
 -----------------------------------------------------------------------------------------------------------------------
 
-Q) 
+Q) FIND THE NUMBER OF MAIDEN OVERS BY ALL BOWLERS , ORDER IT BY NUMBER OF MAIDEN OVERS IN DESC ORDER
 
+WITH CTE AS 
+(SELECT * 
+FROM IPLX                        /*  HERE WE ARE FILTERING THE DATA FOR DOT BALLS ONLY */
+WHERE TOTAL_RUNS = 0),
 
+CTEE AS 
+(SELECT 
+ID , INNING , OVER ,bowler ,COUNT(*) AS TOTAL_COUNT 
+FROM CTE                                             /* GROUPING THE DOT BALLS BY OVER , MATCH , INNING */ 
+GROUP BY ID , INNING , OVER , bowler),
+
+CTE_3 AS 
+(SELECT *                    /* NUMBER OF DOT BALLS SHOULD BE 6 */ 
+FROM CTEE 
+WHERE TOTAL_COUNT = 6)
+
+SELECT 
+BOWLER , COUNT(*)                /* FINNALY FETCHING BOWLERS AND THEIR MAIDEN OVERS */ 
+FROM CTE_3 
+GROUP BY 1 ORDER BY 2 DESC ;
+
+-----------------------------------------------------------------------------------------------------------------------
+
+Q) MAKE A CHART DENOTING TOTAL BOUNDRIES SCORED BY ALL TEAMS ORDER IT IN DESC ORDER  OF TOTAL BOUNDRIES
+
+WITH CTE AS 
+(SELECT * FROM IPLXX WHERE BATSMAN_RUNS IN (4 , 6))
+
+SELECT 
+BATTING_TEAM , COUNT(*) 
+FROM CTE 
+GROUP BY 1 ORDER BY 2 DESC ;
+
+/*
+Mumbai Indians 4034
+Royal Challengers Bangalore 3729
+Kings XI Punjab 3698   */ 
+
+-----------------------------------------------------------------------------------------------------------------------
