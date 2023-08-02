@@ -481,6 +481,35 @@ SELECT '90+' , COUNT(*) FROM CTE_2 WHERE TOTAL_RUNS > 90 ;
 31-60 | 53
 61-90  |21
 90+    | 8
+-----------------------------------------------------------------------------------------------------------------------
 
+Q) FIND THE FASTEST CENTURIES IN DESC ORDER OR STRIKE RATE
 
+WITH CTE_RUNS AS 
+(SELECT 
+ID , BATSMAN , SUM(BATSMAN_RUNS) AS TOTAL_RUNS 
+FROM IPLBALL 
+GROUP BY 1,2  ),
+
+CTE_BALLS AS 
+(SELECT 
+ID , BATSMAN , COUNT(*) AS TOTAL_BALLS
+FROM IPLBALL 
+GROUP BY 1,2),
+
+CTE_JOIN AS 
+(select * 
+FROM CTE_RUNS INNER JOIN CTE_BALLS ON CTE_RUNS.ID = CTE_BALLS.ID AND CTE_RUNS.BATSMAN = CTE_BALLS.BATSMAN),
+
+CTE_FINAL AS 
+(SELECT *, 
+((TOTAL_RUNS / TOTAL_BALLS)*100) AS STRK_RATE
+FROM CTE_JOIN)
+
+SELECT * 
+FROM CTE_FINAL 
+WHERE 
+TOTAL_RUNS >= 100 
+ORDER BY STRK_RATE DESC ;
+-----------------------------------------------------------------------------------------------------------------------
 
