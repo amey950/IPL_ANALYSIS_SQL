@@ -10,6 +10,35 @@ Q) FIND THE TOTAL NUMBER OF 4s (BOUNDRY FOUR) IN ENTIRE IPL TIMESPAN
 
 SELECT COUNT(*) FROM IPL_DATA WHERE BATSMAN_RUN = 4 ;
 ---------------------------------------------------------------------------------------------------------------------
+Q) FIND THE TOP 5 BOWLERS AND THEIR TOTAL WICKETS TAKEN
+
+WITH CTE AS (SELECT * FROM IPLBALL WHERE IS_WICKET = 1)
+
+SELECT BOWLER , COUNT(*) 
+FROM CTE GROUP BY 1 ORDER BY 2 DESC 
+LIMIT 5; 
+
+SL Malinga 188
+DJ Bravo 175
+A Mishra 169
+PP Chawla 164
+Harbhajan Singh 161
+---------------------------------------------------------------------------------------------------------------------
+Q) FIND THE TOP 5 BOWLERS WHO HAVE GIVEN MAXIMUM BOUNDRIES
+
+WITH CTE AS (SELECT * FROM IPLBALL WHERE TOTAL_RUNS IN (4,6))
+SELECT bowler , COUNT(*) FROM CTE 
+GROUP BY 1 ORDER BY 2 DESC
+LIMIT 5;
+
+UT Yadav 513
+PP Chawla 508
+P Kumar 447
+DJ Bravo 446
+Harbhajan Singh 437
+
+---------------------------------------------------------------------------------------------------------------------
+
 Q) FIND THE TOP 5 BATSMAN WHO HAVE SCORED HIGHEST NUMBER OF 6s
 
 WITH CTE AS (SELECT * FROM IPL_DATA WHERE BATSMAN_RUN = 6)
@@ -378,3 +407,37 @@ CTE_FINAL AS
 (SELECT * FROM CTE_MI INNER JOIN CTE_CSK ON CTE_MI.ID = CTE_CSK.ID)
 
 SELECT * FROM CTE_FINAL ;
+-----------------------------------------------------------------------------------------------------------------------
+
+Q) FIND THE TOP 5 BATSMAN WHO HAVE SCORED MAXIMUM 6s
+
+WITH CTE AS (SELECT * FROM IPLBALL WHERE TOTAL_RUNS = 6)
+SELECT BATSMAN , COUNT(*) FROM CTE 
+GROUP BY 1 ORDER BY 2 DESC
+LIMIT 5;
+
+CH Gayle 344
+AB de Villiers 232
+MS Dhoni 214
+RG Sharma 212
+V Kohli 201
+-----------------------------------------------------------------------------------------------------------------------
+
+Q) FIND THE TOP 5 MATCH ID , INNING , BATTING AND BOWLING TEAM WHERE THE NUMBER OF 6s ARE HIGHEST
+
+WITH CTE AS 
+(SELECT * FROM IPLBALL WHERE BATSMAN_RUNS = 6)
+
+SELECT 
+ID , INNING ,BATTING_TEAM,BOWLING_TEAM,COUNT(*) AS TOTAL_CNT 
+FROM CTE 
+GROUP BY ID , INNING ,BATTING_TEAM,BOWLING_TEAM 
+ORDER BY COUNT(*) DESC 
+LIMIT 5 ;
+
+/* HIGHETS SIXES IN SINGLE INNINGS ARE 21 , HITTED BY BANGLORE AGAINST PUNE IN FIRST INNINGS */ 
+
+-----------------------------------------------------------------------------------------------------------------------
+
+Q) 
+
