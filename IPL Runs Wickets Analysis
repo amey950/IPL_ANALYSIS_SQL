@@ -512,4 +512,42 @@ WHERE
 TOTAL_RUNS >= 100 
 ORDER BY STRK_RATE DESC ;
 -----------------------------------------------------------------------------------------------------------------------
+Q) WRITE A QUERY TO FIND THE EACH TEAM AND HOW MANY TIMES THYE HAVE WON THE IPL 
+
+WITH CTE AS                                     /* HERE WE ARE TAKING APPROACH OF COUNTING MATCHES WON BY EACH TEAM, 
+(SELECT                                          THE TEAM WITH MAX. WINS IN SEASON WILL BE BE WINNER AKS CHAMPION */
+YEAR(DATE) AS SEASON , WINNER ,
+COUNT(*) AS TOTAL_COUNT 
+FROM IPLS 
+GROUP BY 1,2 ORDER BY 1 ASC, 3 DESC)
+
+, CTEE AS                                  /* ALLOCATING RANK BASED ON NUMBER OF WINS IN EACH SEASON */ 
+(SELECT *, 
+dense_rank() OVER(PARTITION BY SEASON ORDER BY TOTAL_COUNT DESC) AS DRNK FROM CTE) 
+
+,CTEEE AS                               /* FETCHING THE RECORDS WITH RANK 1 */
+(SELECT 
+SEASON , WINNER FROM CTEE WHERE DRNK = 1)
+
+SELECT WINNER , COUNT(*) FROM CTEEE GROUP BY 1 ORDER BY 2 DESC;
+-----------------------------------------------------------------------------------------------------------------------
+
+Q) FIND THE LIST OF WINNERS OF IPL SEASON ALONG WITH IT FIND THE MAN OF THE MATCH , NAME OF OTHER TEAM ETC.
+
+WITH CTE AS 
+(SELECT *,                        
+DENSE_RANK()                                              /* HERE WE ARE ASSIGNING THE DENSE RANK BASED ON DATE AFTER 
+OVER(PARTITION BY YEAR(DATE) ORDER BY DATE DESC) AS DRNK    PARTITION BY YEAR AND ORDER BY DATE DESC   */ 
+FROM FINALS)                                     
+
+SELECT 
+distinct(id),
+winner , 
+team1 ,                                             /* FETCHING THE DATA ASSOCIATED WITH THE RANK = 1 */
+team2, 
+player_of_match ,
+year(date) as season 
+FROM CTE WHERE DRNK = 1 
+order by season asc;
+
 
