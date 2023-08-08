@@ -721,4 +721,59 @@ SELECT * FROM FINAL WHERE (FIRST_BAT = 'Mumbai Indians' AND SECOND_BAT = 'Chenna
 (INN_ONE_RUNS > INN_TWO_RUNS)   ;             /* THERE ARE 10 INSTANCES WHEN MUMBAI WON WHILE BATTING FIRST */
 ---------------------------------------------------------------------------------------------------------------
 
+Q) FIND THE TOP 5 LOWEST SCORE WHILE BATTING ON FIRST INNING , ASLO MENTION BOWLING TEAM AND SCORE
+
+SELECT 
+ID , BATTING_TEAM , BOWLING_TEAM , SUM(TOTAL_RUNS) AS TOTAL_RUNS 
+FROM IPLS 
+WHERE INNING = 1 
+GROUP BY 1,2,3 
+ORDER BY 4 ASC 
+LIMIT 5;
+
+/* LOWEST SCORE IN IPL FIRST INNING BATTER IS 56 RUNS SCORED BY DELHI AGAINST PUNE */
+---------------------------------------------------------------------------------------------------------------
+Q) FIND THE TOP 5 LEAST SCORES BY CHENNAI TEAM , ALSO MENTION ID , BOWLING TEAM , INNING 
+
+SELECT 
+ID , INNING , BOWLING_TEAM, SUM(TOTAL_RUNS) 
+FROM IPLS
+WHERE batting_team  = 'Chennai Super Kings'           /* THIS CODE CAN BE USED FOR FINDING DATA FOR OTHER TEAMS ALSO */ 
+GROUP BY 1,2,3 
+ORDER BY 4 ASC 
+LIMIT 5 ;
+
+ID	  INNING	  BOWLING_TEAM	      sum(TOTAL_RUNS)
+336025	2	Kolkata Knight Riders	      55
+1175356	2	Royal Challengers Bangalore	71
+598046	2	Mumbai Indians	            79
+598068	2	Royal Challengers Bangalore	82
+336005	1	Rajasthan Royals	          109
+---------------------------------------------------------------------------------------------------------------
+
+Q) FIND YEAR BY YEAR RUNS SCORED BY "V KOHLI" .
+
+NOTE : WE HAVE 2 DIFFERENT DATASETS ,AS BALL-BY-BALL DATASET DO NOT HAVE DATE COLUMN 
+WE WILL BE USING ID , AS ID IS PRESENT IN THE BOTH DATASET. 
+HERE WE ARE ACHEIVING RESULT WITHOUT ATTACHING 2 DATASET COMPLETELY HENCE SAVING THE STORAGE AND COMPUTE
+
+with cte as 
+(select 
+id , sum(batsman_runs) AS TOTAL_RUNS            /* HERE WE ARE GROUPING BY TOTAL RUNS BY ID */
+from ipls 
+where batsman = 'V Kohli' group by 1),
+
+ctee as 
+(select id , year(date) AS YR               /* FETCHING ID AND YEAR OF DATE FROM OTHER DATASET */
+from ipl_dates ),
+
+CTE_FINAL AS 
+(SELECT *                                       /* ATTACHING THE 2 TABLES OR CTE */
+FROM CTE INNER JOIN CTEE ON CTE.ID = CTEE.ID)
+
+SELECT  
+YR , SUM(TOTAL_RUNS)                       /* FINAL QUERY */ 
+FROM CTE_FINAL GROUP BY 1 ORDER BY 2 
+---------------------------------------------------------------------------------------------------------------
+
 Q) 
