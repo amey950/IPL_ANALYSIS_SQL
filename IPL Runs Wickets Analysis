@@ -549,5 +549,95 @@ player_of_match ,
 year(date) as season 
 FROM CTE WHERE DRNK = 1 
 order by season asc;
+-----------------------------------------------------------------------------------------------------------------------
 
+Q) FIND THE TOTAL INSTANCES / MATCHES WHERE FIRST BATTER TEAM WON THE MATCH
+
+WITH INNING_ONE AS 
+(SELECT 
+BATTING_TEAM as first_bat, ID ,                 /* CREATING CTE FOR MATCHES AND TOTAL RUN IN MATCH WHEN INNING OF MATCH IS FIRST */
+SUM(TOTAL_RUNS) AS INN_ONE_RUNS FROM IPLS 
+WHERE INNING = 1 
+GROUP BY 1,2),
+
+INNING_TWO AS 
+(SELECT 
+BATTING_TEAM as second_team, ID  , 
+SUM(TOTAL_RUNS) AS INN_TWO_RUNS 
+FROM IPLS                                /* CREATING CTE FOR MATCHES AND TOTAL RUN IN MATCH WHEN INNING OF MATCH IS SECOND */
+WHERE INNING = 2 
+GROUP BY 1,2),
+
+FINAL AS 
+(SELECT *                                /* CREATING NEW CTE FOR JOINING FIRST 2 CTEs */
+FROM INNING_ONE INNER JOIN INNING_TWO 
+ON INNING_ONE.ID = INNING_TWO.ID)
+
+SELECT 
+COUNT(*) 
+FROM FINAL 
+WHERE INN_ONE_RUNS > INN_TWO_RUNS    /* 372 matches when first batter won the match */ 
+-----------------------------------------------------------------------------------------------------------------------
+
+Q) FIND THE COUNT OF INSTANCES WHEN 2ND INNING BATTER HAVE WON THE MATCH
+
+WITH INNING_ONE AS 
+(SELECT 
+BATTING_TEAM as first_bat, ID ,                 /* CREATING CTE FOR MATCHES AND TOTAL RUN IN MATCH WHEN INNING OF MATCH IS FIRST */
+SUM(TOTAL_RUNS) AS INN_ONE_RUNS FROM IPLS 
+WHERE INNING = 1 
+GROUP BY 1,2),
+
+INNING_TWO AS 
+(SELECT 
+BATTING_TEAM as second_team, ID  , 
+SUM(TOTAL_RUNS) AS INN_TWO_RUNS 
+FROM IPLS                                /* CREATING CTE FOR MATCHES AND TOTAL RUN IN MATCH WHEN INNING OF MATCH IS SECOND */
+WHERE INNING = 2 
+GROUP BY 1,2),
+
+FINAL AS 
+(SELECT *                                /* CREATING NEW CTE FOR JOINING FIRST 2 CTEs */
+FROM INNING_ONE INNER JOIN INNING_TWO 
+ON INNING_ONE.ID = INNING_TWO.ID)
+
+SELECT 
+COUNT(*) 
+FROM FINAL 
+WHERE INN_ONE_RUNS < INN_TWO_RUNS    /* 429 matches when first batter won the match */ 
+-------------------------------------------------------------------------------------------------------
+
+Q) FIND THE TOP 3 TEAMS WHO HAVE MAXIMUM NUMBER OF VICTORIS WHILE BATTING ON 2ND INNING
+
+WITH INNING_ONE AS 
+(SELECT 
+BATTING_TEAM as first_bat, ID , 
+SUM(TOTAL_RUNS) AS INN_ONE_RUNS 
+FROM IPLS WHERE INNING = 1 
+GROUP BY 1,2),
+
+INNING_TWO AS 
+(SELECT BATTING_TEAM as second_team, ID  , 
+SUM(TOTAL_RUNS) AS INN_TWO_RUNS FROM IPLS 
+WHERE INNING = 2 GROUP BY 1,2),
+
+FINAL AS 
+(SELECT * 
+FROM INNING_ONE INNER JOIN INNING_TWO ON INNING_ONE.ID = INNING_TWO.ID),
+
+CTE AS 
+(SELECT                         /* HERE WE ARE MAKING ANOTHER CTE WHERE INN_TWO_RUNS ARE GREATER THAN INN_ONE_RUNS */
+* FROM FINAL 
+WHERE INN_ONE_RUNS < INN_TWO_RUNS) 
+
+SELECT 
+SECOND_TEAM ,                     
+COUNT(*) FROM CTE GROUP BY 1 ORDER BY 2 DESC LIMIT 3;
+
+Mumbai Indians 56
+Kolkata Knight Riders 55
+Chennai Super Kings 53
+Rajasthan Royals 51
+
+-------------------------------------------------------------------------------------------------------
 
